@@ -1,0 +1,6 @@
+claudette
+anthropic
+pandas
+numpy
+matplotlib
+scikit-learn
