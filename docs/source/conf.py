@@ -5,6 +5,9 @@ import importlib.metadata as metadata
 import os
 import sys
 from pathlib import Path
+import os, sys
+sys.path.insert(0, os.path.abspath('../../src'))
+
 
 # -- Path setup --------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
