@@ -4,3 +4,7 @@ pandas
 numpy
 matplotlib
 scikit-learn
+
+# Development and testing dependencies
+pytest
+pytest-mock
