@@ -4,15 +4,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from claudette import Chat, models
 from .context_manager import ContextManager
+import ast
+from dataguy.utils import LLMResponseCache
+
 
 class DataGuy:
     def __init__(self, max_code_history=100):
         self.context = ContextManager(max_code_history=max_code_history)
         self.data = None
+        self._data_description = None
 
         self.chat_code = Chat(self._select_model("code"), sp="You write Python code for pandas and matplotlib tasks.")
         self.chat_text = Chat(self._select_model("text"), sp="You explain datasets and their structure clearly.")
         self.chat_image = Chat(self._select_model("image"), sp="You describe uploaded data visualizations clearly, so plot can be recreated based on that.")
+
+        self.cache=LLMResponseCache()
 
     def _select_model(self, mode):
         if mode == "image":
@@ -25,19 +31,90 @@ class DataGuy:
     def _generate_code(self, task: str) -> str:
         prompt = self.context.get_context_summary() + "\n# Task: " + task
         resp = self.chat_code(prompt)
-        raw = resp.content[0].text
-        match = re.search(r'```(?:python)?\n(.*?)```', raw, re.S)
-        return match.group(1).strip() if match else raw.strip()
 
-    def _exec_code(self, code: str) -> dict:
-        print(code)
-        ns = {'pd': pd, 'np': np, 'data': self.data, 'plt': plt}
-        base = set(ns)
-        exec(code, ns)
+        # Safely extract LLM response
+        try:
+            raw = resp.content[0].text
+        except (AttributeError, IndexError, TypeError) as e:
+            raise ValueError(f"Invalid LLM response format: {resp}") from e
+
+        match = re.search(r'```(?:python)?\n(.*?)```', raw, re.S)
+        if match:
+            extracted_code = match.group(1).strip()
+        else:
+            extracted_code = raw.strip()
+
+        if not extracted_code:
+            raise ValueError("No code found in LLM response.")
+
+        return extracted_code
+
+    def _is_safe_code(self, code_str):
+        try:
+            tree = ast.parse(code_str)
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal)):
+                    print(f"Blocked unsafe node: {type(node).__name__}")
+                    return False
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'exec':
+                    print("Blocked unsafe function call: exec()")
+                    return False
+        except SyntaxError as e:
+            print(f"Syntax error during AST check: {e}")
+            return False
+        return True
+
+    def _exec_code(self, code: str, retries_left=3) -> dict:
+        print("Executing code:\n", code)
+
+        safe_globals = {
+            "__builtins__": {
+                "len": len,
+                "range": range,
+                "min": min,
+                "max": max,
+                "sum": sum,
+                "abs": abs,
+            },
+            "pd": pd,
+            "np": np,
+            "plt": plt,
+        }
+        local_ns = {"data": self.data}
+        base = set(local_ns)
+
+        if not self._is_safe_code(code):
+            print("Unsafe code detected. Execution aborted.")
+            return {"error": "Unsafe code detected and blocked."}
+
+        try:
+            exec(code, safe_globals, local_ns)
+        except (SyntaxError, Exception) as e:
+            print(f"Error during code execution: {e}")
+
+            if retries_left <= 0:
+                return {"error": f"Execution failed after retries: {e}"}
+
+            # 🏆 Feed error back into LLM to fix the code
+            fix_task = (
+                "The following code failed with this error:\n"
+                f"{e}\n\n"
+                "Original code:\n"
+                f"{code}\n\n"
+                "Please fix the code."
+            )
+
+            # Re-generate code using error feedback
+            new_code = self._generate_code(fix_task)
+            print(f"Retrying with corrected code (retries left: {retries_left-1})...")
+            return self._exec_code(new_code, retries_left=retries_left - 1)
+
         self.context.add_code(code)
-        self.context.update_from_globals(ns)
-        new_keys = set(ns) - base
-        return {k: ns[k] for k in new_keys if not k.startswith('__')} | {'data': ns['data']} if 'data' in ns else {}
+        self.context.update_from_globals(local_ns)
+
+        new_keys = set(local_ns) - base
+        return {k: local_ns[k] for k in new_keys if not k.startswith('__')} | \
+               {'data': local_ns['data']} if 'data' in local_ns else {}
 
     def set_data(self, obj):
         if isinstance(obj, pd.DataFrame):
@@ -65,10 +142,18 @@ class DataGuy:
             "Describe the dataset in a few sentences based on the following summary:\n"
             f"{summary}"
         )
-        resp = self.chat_text(prompt)
-        desc = resp.content[0].text
-        self.context.add_code(f"# Description: {desc}")
-        return desc
+
+        cached_resp = self.cache.get(prompt)
+        if cached_resp:
+            resp_text = cached_resp
+        else:
+            resp = self.chat_text(prompt)
+            resp_text = resp.content[0].text
+            self.cache.set(prompt, resp_text)
+
+        self.context.add_code(f"# Description: {resp_text}")
+        self._data_description=resp_text
+        return resp_text
 
     def wrangle_data(self) -> pd.DataFrame:
         if self.data is None:
@@ -90,10 +175,17 @@ class DataGuy:
     def analyze_data(self):
         if self.data is None:
             raise ValueError("No data loaded. Use set_data() first.")
+
         task = "Analyze the pandas DataFrame `data` and return a dict `result` with shape, columns, and descriptive stats."
         code = self._generate_code(task)
         ns = self._exec_code(code)
-        return ns.get('result')
+
+        result = ns.get('result')
+        if result is None:
+            print("Warning: LLM-generated code did not return a 'result'.")
+            result = {"error": "No result returned by analysis code."}
+
+        return result
 
     def plot_data(self, column_x: str, column_y: str):
         if self.data is None:

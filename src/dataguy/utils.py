@@ -21,3 +21,32 @@ def validate_file_path(file_path):
         raise PermissionError(f"File is not readable: {file_path}")
     
     return True
+
+class LLMResponseCache:
+    def __init__(self):
+        self.cache = {}
+
+    def get(self, prompt):
+        return self.cache.get(prompt)
+
+    def set(self, prompt, response):
+        self.cache[prompt] = response
+
+    def get_or_set(self, prompt, llm_function):
+        if prompt in self.cache:
+            return self.cache[prompt]
+        response = llm_function(prompt)
+        self.cache[prompt] = response
+        return response
+
+    def save_to_file(self, filepath):
+        import json
+        with open(filepath, 'w') as f:
+            json.dump(self.cache, f)
+
+    def load_from_file(self, filepath):
+        import json
+        import os
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as f:
+                self.cache = json.load(f)
