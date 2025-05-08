@@ -30,7 +30,7 @@ class DataGuy:
             return models[-1]
 
     def _generate_code(self, task: str) -> str:
-        prompt = self.context.get_context_summary() + "\n# Task: " + task
+        prompt = self.context.get_context_summary() + "\n# Task: " + task + "The dataset you're using is named data, trying with other names will likely error."
         resp = self.chat_code(prompt)
 
         # Safely extract LLM response

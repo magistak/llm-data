@@ -4,6 +4,7 @@ pandas
 numpy
 matplotlib
 scikit-learn
+seaborn
 
 # Development and testing dependencies
 pytest

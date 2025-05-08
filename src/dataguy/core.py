@@ -8,6 +8,7 @@ import ast
 from dataguy.utils import LLMResponseCache
 import builtins
 
+
 class DataGuy:
     def __init__(self, max_code_history=100):
         self.context = ContextManager(max_code_history=max_code_history)
@@ -29,7 +30,7 @@ class DataGuy:
             return models[-1]
 
     def _generate_code(self, task: str) -> str:
-        prompt = self.context.get_context_summary() + "\n# Task: " + task
+        prompt = self.context.get_context_summary() + "\n# Task: " + task + "The dataset you're using is named data, trying with other names will likely error."
         resp = self.chat_code(prompt)
 
         # Safely extract LLM response
@@ -171,6 +172,7 @@ class DataGuy:
             'means': self.data.mean(numeric_only=True).to_dict()
         }
 
+
     def describe_data(self) -> str:
         summary = self.summarize_data()
         prompt = (
@@ -230,8 +232,7 @@ class DataGuy:
         self._exec_code(code)
 
     def describe_plot(self, img_bytes: bytes) -> str:
-        resp = self.chat_image([img_bytes,
-                               "Please describe this plot in detail so that it can be faithfully recreated in Python using matplotlib.Include ALL of the following in your description: 1. The type of plot (scatter, line, bar, etc.) 2. The variables plotted on X and Y axes (including units if visible) 3. The number of data points shown 4. The axis ranges (min and max for X and Y) 5. Any grouping or color coding used (legend categories) 6. Any markers, shapes, or line styles used 7. Any annotations or text present 8. The general pattern or trend visible 9. Figure size or aspect ratio if visible 10. Anything else visible that affects interpretation. Be precise and exhaustive. Do not assume anything; describe only what is visible.This description will be used to write Python code to recreate the plot as closely as possible."])
+        resp = self.chat_image([img_bytes, "Please describe this plot in detail so that it can be faithfully recreated in Python using matplotlib.Include ALL of the following in your description: 1. The type of plot (scatter, line, bar, etc.) 2. The variables plotted on X and Y axes (including units if visible) 3. The number of data points shown 4. The axis ranges (min and max for X and Y) 5. Any grouping or color coding used (legend categories) 6. Any markers, shapes, or line styles used 7. Any annotations or text present 8. The general pattern or trend visible 9. Figure size or aspect ratio if visible 10. Anything else visible that affects interpretation. Be precise and exhaustive. Do not assume anything; describe only what is visible.This description will be used to write Python code to recreate the plot as closely as possible."])
         desc = resp.content[0].text
         self.context.add_code(f"# Plot description: {desc}")
         return desc
