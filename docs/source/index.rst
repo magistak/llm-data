@@ -53,8 +53,16 @@ The workflow consists of the following steps:
 Visual Workflow
 ---------------
 
-.. image:: graphsum.png
+.. image:: workflow.jpg
    :alt: DataGuy Workflow
+   :width: 600px
+   :align: center
+
+Package Structure
+---------------
+
+.. image:: graphsum.png
+   :alt: DataGuy Structure
    :width: 600px
    :align: center
 
