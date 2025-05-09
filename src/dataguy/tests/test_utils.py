@@ -1,13 +1,17 @@
 import os
 import pytest
-import json
 from dataguy.utils import validate_file_path, LLMResponseCache
 
 
-def test_validate_file_path(tmp_path):
+def test_validate_file_path(mocker, tmp_path):
     # Create a temporary file
     temp_file = tmp_path / "test_file.txt"
     temp_file.write_text("Sample content")
+
+    mocker.patch("builtins.open", side_effect=PermissionError)
+
+    with pytest.raises(PermissionError):
+        validate_file_path(str(temp_file))
 
     # Test valid file path
     assert validate_file_path(str(temp_file)) is True

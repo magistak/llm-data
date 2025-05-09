@@ -7,7 +7,10 @@ from .context_manager import ContextManager
 import ast
 from dataguy.utils import LLMResponseCache
 import builtins
+from typing import Optional, Dict, Any
 
+def call_chat(chat_instance, *args, **kwargs):
+    return chat_instance(*args, **kwargs)
 
 class DataGuy:
     """
@@ -15,29 +18,54 @@ class DataGuy:
     It uses an LLM model to generate lambda functions for various data analysis methods.
     Its execution checks if the code has an error, and generates it again, by feeding the old code back together with the error.
     """
-    def __init__(self, max_code_history=100):
+    def __init__(self, max_code_history=100, model_overrides: Optional[Dict[str, Any]] = None, auto_model_switch=True):
         self.context = ContextManager(max_code_history=max_code_history)
         self.data = None
         self._data_description = None
+        self.model_overrides = model_overrides or {}
+        self.auto_model_switch = auto_model_switch
 
-        self.chat_code = Chat(self._select_model("code"), sp="You write Python code for pandas and matplotlib tasks.")
-        self.chat_text = Chat(self._select_model("text"), sp="You explain datasets and their structure clearly.")
-        self.chat_image = Chat(self._select_model("image"), sp="You describe uploaded data visualizations clearly, so plot can be recreated based on that.")
+        self.prompts = {
+            "code": "You write Python code for pandas and matplotlib tasks.",
+            "text": "You explain datasets and their structure clearly.",
+            "image": "You describe uploaded data visualizations clearly, so plot can be recreated based on that."
+        }
 
         self.cache=LLMResponseCache()
 
-    def _select_model(self, mode):
+    def _select_model(self, mode, data=None):
         """
         Selects if it's an image or a text
         :param mode: a string to decide whether it is an image or text
         :return: returns the appropriate model
         """
-        if mode == "image":
-            return next((m for m in models if "opus" in m), models[-1])
-        elif mode == "text":
-            return next((m for m in models if "sonnet" in m or "haiku" in m), models[-1])
-        else:
-            return models[-1]
+        # 1. use override if given
+        if mode in self.model_overrides:
+            return self.model_overrides[mode]
+
+        # 2. auto-switch logic
+        if self.auto_model_switch and mode == "code" and data is not None:
+            if isinstance(data, pd.DataFrame) and (data.shape[0] > 100_000 or data.shape[1] > 100):
+                print("[Model use] The uploaded dataset is large. Switching to 'haiku' for performance.")
+                for m in models:
+                    if "haiku" in m:
+                        return m
+
+        # 3. fallback preferences by mode
+        preferences = {
+            "image": ["opus", "sonnet", "haiku"],
+            "text": ["sonnet", "haiku"],
+            "code": ["sonnet", "haiku"]
+        }
+
+        # Search preferences in order
+        for preferred in preferences.get(mode, []):
+            for m in models:
+                if f"claude-3-{preferred}" in m:
+                    return m
+
+        # 4. last resort
+        return models[-1]
 
     def _generate_code(self, task: str) -> str:
         """
@@ -48,7 +76,9 @@ class DataGuy:
         :return: a python code as a string
         """
         prompt = self.context.get_context_summary() + "\n# Task: " + task + "The dataset you're using is named data, trying with other names will likely error."
-        resp = self.chat_code(prompt)
+        model = self._select_model("code", data=self.data)
+        chat = Chat(model, sp=self.prompts["code"])
+        resp = call_chat(chat, prompt)
 
         # Safely extract LLM response
         try:
@@ -230,7 +260,9 @@ class DataGuy:
         if cached_resp:
             resp_text = cached_resp
         else:
-            resp = self.chat_text(prompt)
+            model = self._select_model("text")
+            chat = Chat(model, sp=self.prompts["text"])
+            resp = call_chat(chat, prompt)
             resp_text = resp.content[0].text
             self.cache.set(prompt, resp_text)
 
@@ -263,7 +295,7 @@ class DataGuy:
     def analyze_data(self):
         """
         Analyzes the data stored in DataGuy.
-        :return: Returns a result dictionary, with shape, columsn, and descriptive stats.
+        :return: Returns a result dictionary, with shape, column, and descriptive stats.
         """
         if self.data is None:
             raise ValueError("No data loaded. Use set_data() first.")
@@ -298,7 +330,9 @@ class DataGuy:
         :param img_bytes: The image converted to bytes.
         :return: A text description of the plot.
         """
-        resp = self.chat_image([img_bytes, "Please describe this plot in detail so that it can be faithfully recreated in Python using matplotlib.Include ALL of the following in your description: 1. The type of plot (scatter, line, bar, etc.) 2. The variables plotted on X and Y axes (including units if visible) 3. The number of data points shown 4. The axis ranges (min and max for X and Y) 5. Any grouping or color coding used (legend categories) 6. Any markers, shapes, or line styles used 7. Any annotations or text present 8. The general pattern or trend visible 9. Figure size or aspect ratio if visible 10. Anything else visible that affects interpretation. Be precise and exhaustive. Do not assume anything; describe only what is visible.This description will be used to write Python code to recreate the plot as closely as possible."])
+        model = self._select_model("image")
+        chat = Chat(model, sp=self.prompts["image"])
+        resp = call_chat(chat, ([img_bytes,"Please describe this plot in detail so that it can be faithfully recreated in Python using matplotlib.Include ALL of the following in your description: 1. The type of plot (scatter, line, bar, etc.) 2. The variables plotted on X and Y axes (including units if visible) 3. The number of data points shown 4. The axis ranges (min and max for X and Y) 5. Any grouping or color coding used (legend categories) 6. Any markers, shapes, or line styles used 7. Any annotations or text present 8. The general pattern or trend visible 9. Figure size or aspect ratio if visible 10. Anything else visible that affects interpretation. Be precise and exhaustive. Do not assume anything; describe only what is visible.This description will be used to write Python code to recreate the plot as closely as possible."]))
         desc = resp.content[0].text
         self.context.add_code(f"# Plot description: {desc}")
         return desc

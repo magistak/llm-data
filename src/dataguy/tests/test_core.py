@@ -46,7 +46,7 @@ def test_describe_data(mocker):
     dg.set_data(df)
 
     # Mock the LLM response
-    mocker.patch.object(dg, "chat_text", return_value=mocker.Mock(content=[mocker.Mock(text="This is a test description.")]))
+    mocker.patch("dataguy.core.Chat", return_value=mocker.Mock(__call__=mocker.Mock(return_value=mocker.Mock(content=[mocker.Mock(text="This is a test description.")]))))
     description = dg.describe_data()
 
     assert description == "This is a test description."
