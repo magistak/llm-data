@@ -4,6 +4,7 @@ import datetime
 import importlib.metadata as metadata
 import os
 import sys
+print(sys.path)
 from pathlib import Path
 
 # -- Path setup --------------------------------------------------------------
