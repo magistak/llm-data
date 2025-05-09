@@ -4,17 +4,26 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dataguy"
-version = "0.1.0"
+version = "0.1.2"
 description = "Tiny wrapper around pandas with built‑in logging & docs."
 authors = [
     { name = "István Magyary", email = "magistak@gmail.com" },
     { name = "Sára Viemann", email = "viemannsara@gmail.com" },
-    { name = "Bálint Kristóf", email = "balint.kristof.99@gmail.com"}
+    { name = "Bálint Kristóf", email = "balint.kristof.99@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
   "pandas>=2.0",
+]
+
+license = { text = "MIT" }
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
 ]
 
 [project.urls]
@@ -23,3 +32,10 @@ Documentation = "https://dataguy.readthedocs.io"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dataguy"]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "furo",
+    "myst-parser",
+]
