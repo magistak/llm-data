@@ -7,6 +7,16 @@ import sys
 print(sys.path)
 from pathlib import Path
 
+# Debug: Check installed packages
+print("Installed packages:", [d.name for d in distributions()])
+
+# Debug: Test importing dataguy
+try:
+    import dataguy
+    print("Successfully imported dataguy")
+except ImportError as e:
+    print(f"Failed to import dataguy: {e}")
+
 # -- Path setup --------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 #sys.path.insert(0, str(PROJECT_ROOT / "src"))
