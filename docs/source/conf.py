@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 project = "DataGuy"
 author = "István Magyary, Sára Viemann, Bálint Kristóf"
 copyright = f"{datetime.datetime.now().year}, {author}"
-release = metadata.version("dataguy") if "dataguy" in metadata.packages_distributions() else "0.1.3"
+release = metadata.version("dataguy") if "dataguy" in metadata.packages_distributions() else "0.1.4"
 
 # -- General configuration ---------------------------------------------------
 extensions = [

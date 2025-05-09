@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dataguy"
-version = "0.1.3"
+version = "0.1.4"
 description = "Tiny wrapper around pandas with built‑in logging & docs."
 authors = [
     { name = "István Magyary", email = "magistak@gmail.com" },
