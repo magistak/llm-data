@@ -4,6 +4,11 @@ Dataguy Documentation
 Welcome to **DataGuy** — a Python package designed to simplify data science workflows using Large Language Models (LLMs).
 It helps with intelligent data wrangling, analysis, and visualization for small-to-medium datasets.
 
+- **GitHub**: `View the source code on GitHub <https://github.com/magistak/llm-data>`_
+- **PyPI**: `Install from PyPI <https://pypi.org/project/dataguy>`_
+- **Documentation**: `Read the full documentation <https://dataguy.readthedocs.io>`_
+- **demo**: `Try the demo <https://colab.research.google.com/drive/1RhLC0b4RN1kVKAh3NqNPn_Axlc0Rn3L8?usp=sharing>`_
+
 Features
 --------
 
@@ -48,15 +53,10 @@ The workflow consists of the following steps:
 Visual Workflow
 ---------------
 
-.. mermaid::
-
-   graph TD
-     A[User Prompt] --> B[Model Selection]
-     B --> C[Prompt Builder]
-     C --> D[LLM Request]
-     D --> E[Code or Text Generation]
-     E --> F[Safe Execution]
-     F --> G[Output (Chart, Summary, etc.)]
+.. image:: graphsum.png
+   :alt: DataGuy Workflow
+   :width: 600px
+   :align: center
 
 Example Usage
 -------------
@@ -64,19 +64,22 @@ Example Usage
 .. code-block:: python
 
    from dataguy import DataGuy
+   import seaborn as sns
 
    # Create the assistant
    dg = DataGuy()
 
-   # Load a dataset
-   dg.load("sales.csv")
+   # Load the Iris dataset
+   iris = sns.load_dataset("iris")
+   dg.set_data(iris)
 
-   # Ask a question or request a plot
-   dg.ask("Describe this dataset")
-   dg.ask("Show a bar chart of sales by region")
+   # Wrangle the dataset
+   cleaned_data = dg.wrangle_data()
+   print("Cleaned Data:", cleaned_data)
 
-   # DataGuy interprets the request and responds with a chart or summary
-
+   # Describe the dataset
+   description = dg.describe_data()
+   print("Dataset Description:", description)
 
 Installation
 ------------
@@ -92,10 +95,18 @@ Quickstart
 
 .. code-block:: python
 
+   import os
+   # Set the Anthropic API key as an environment variable
+   os.environ["ANTHROPIC_API_KEY"] = "your_anthropic_api_key_here"
+
    from dataguy import DataGuy
-   dg = DataGuy("data.csv")
-   dg.describe()
-   dg.visualize("a bar chart of sales by category")
+   import seaborn as sns
+   
+   dg = DataGuy()
+   iris = sns.load_dataset("iris")
+   dg.set_data(iris)
+
+   dg.wrangle_data()
 
 .. toctree::
    :maxdepth: 2
@@ -111,5 +122,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
