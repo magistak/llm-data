@@ -2,6 +2,11 @@
 
 **DataGuy** is a Python package designed to simplify data science workflows by leveraging the power of Large Language Models (LLMs). It provides tools for automated data wrangling, intelligent analysis, and AI-assisted visualization, making it ideal for small-to-medium datasets.
 
+- **GitHub**: [View the source code on GitHub](https://github.com/magistak/llm-data)
+- **PyPI**: [Install from PyPI](https://pypi.org/project/dataguy)
+- **Documentation**: [Read the full documentation](https://dataguy.readthedocs.io)
+- **Demo**: [Try the demo](https://colab.research.google.com/drive/1RhLC0b4RN1kVKAh3NqNPn_Axlc0Rn3L8?usp=sharing)
+
 ## Features
 
 - **Automated Data Wrangling**: Clean and preprocess your data with minimal effort using LLM-generated code.
