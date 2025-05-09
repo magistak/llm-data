@@ -1,12 +1,10 @@
-API reference
+API Reference
 =============
-
-.. currentmodule:: dataguy
 
 .. autosummary::
    :toctree: _autosummary
    :recursive:
 
-   DataGuy
-   ContextManager
-   validate_file_path
+   dataguy.ContextManager
+   dataguy.DataGuy
+   dataguy.validate_file_path

@@ -19,7 +19,7 @@ except ImportError as e:
 
 # -- Path setup --------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-#sys.path.insert(0, str(PROJECT_ROOT / "src"))
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 # -- Project information -----------------------------------------------------
 project = "DataGuy"
@@ -30,8 +30,9 @@ release = metadata.version("dataguy") if "dataguy" in metadata.packages_distribu
 # -- General configuration ---------------------------------------------------
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
     "myst_parser",
 ]
 
