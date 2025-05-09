@@ -1,8 +1,8 @@
 version: 2
 
-# Specify the Python version and dependencies
+# Specify the Python interpreter and dependencies
 python:
-  version: 3.9
+  interpreter: python3.9
   install:
     - method: pip
       path: .
