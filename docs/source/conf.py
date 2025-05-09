@@ -25,7 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 project = "DataGuy"
 author = "István Magyary, Sára Viemann, Bálint Kristóf"
 copyright = f"{datetime.datetime.now().year}, {author}"
-release = metadata.version("dataguy") if "dataguy" in metadata.packages_distributions() else "0.1.0"
+release = metadata.version("dataguy") if "dataguy" in metadata.packages_distributions() else "0.1.3"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
