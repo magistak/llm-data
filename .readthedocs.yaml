@@ -1,22 +1,15 @@
-# Read the Docs configuration file for Sphinx projects
-# See https://docs.readthedocs.com/platform/stable/config-file/v2.html for details
-
 version: 2
 
-# Specify the Python environment
-python:
-  version: 3.9
-  install:
-    - method: pip
-      path: .
-    - requirements: requirements.txt  # Ensure this file exists with all dependencies listed
-
-# Sphinx configuration
-sphinx:
-  configuration: docs/source/conf.py  # Path to your Sphinx configuration file
-
-# Build options
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.9"
+    python: "3.11"
+
+python:
+  install:
+    - method: pip
+      path: .
+    - requirements: docs/requirements.txt
+
+sphinx:
+  configuration: docs/conf.py
