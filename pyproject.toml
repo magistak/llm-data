@@ -16,7 +16,13 @@ requires-python = ">=3.9"
 dependencies = [
   "pandas>=2.0",
   "matplotlib",
-  "numpy"
+  "numpy",
+  "claudette",
+  "anthropic",
+  "scikit-learn",
+  "seaborn",
+  "pytest",
+  "pytest-mock"
 ]
 
 license = { text = "MIT" }
