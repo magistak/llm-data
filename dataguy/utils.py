@@ -24,16 +24,36 @@ def validate_file_path(file_path):
 
 
 class LLMResponseCache:
+    """
+    A response cacher for the LLM prompts. This is for not calling the API too many times.
+    """
     def __init__(self):
         self.cache = {}
 
     def get(self, prompt):
+        """
+        Getter
+        :param prompt:
+        :return:
+        """
         return self.cache.get(prompt)
 
     def set(self, prompt, response):
+        """
+        Setter
+        :param prompt:
+        :param response:
+        :return:
+        """
         self.cache[prompt] = response
 
     def get_or_set(self, prompt, llm_function):
+        """
+        Getter or Setter
+        :param prompt:
+        :param llm_function:
+        :return:
+        """
         if prompt in self.cache:
             return self.cache[prompt]
         response = llm_function(prompt)
@@ -41,11 +61,21 @@ class LLMResponseCache:
         return response
 
     def save_to_file(self, filepath):
+        """
+        Save the response to a JSON file.
+        :param filepath:
+        :return:
+        """
         import json
         with open(filepath, 'w') as f:
             json.dump(self.cache, f)
 
     def load_from_file(self, filepath):
+        """
+        Load the response from a JSON file.
+        :param filepath:
+        :return:
+        """
         import json
         import os
         if os.path.exists(filepath):
