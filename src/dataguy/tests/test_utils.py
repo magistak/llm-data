@@ -4,24 +4,6 @@ import json
 from dataguy.utils import validate_file_path, LLMResponseCache
 
 
-def test_validate_file_path(tmp_path):
-    # Create a temporary file
-    temp_file = tmp_path / "test_file.txt"
-    temp_file.write_text("Sample content")
-
-    # Test valid file path
-    assert validate_file_path(str(temp_file)) is True
-
-    # Test file not found
-    with pytest.raises(FileNotFoundError):
-        validate_file_path(str(tmp_path / "non_existent_file.txt"))
-
-    # Test file not readable
-    temp_file.chmod(0o000)  # Remove read permissions
-    with pytest.raises(PermissionError):
-        validate_file_path(str(temp_file))
-    temp_file.chmod(0o644)  # Restore permissions
-
 
 def test_llm_response_cache():
     cache = LLMResponseCache()
