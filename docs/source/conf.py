@@ -8,7 +8,7 @@ print(sys.path)
 from pathlib import Path
 
 # Debug: Check installed packages
-print("Installed packages:", [d.name for d in distributions()])
+print("Installed packages:", [d.name for d in metadata.distributions()])
 
 # Debug: Test importing dataguy
 try:
