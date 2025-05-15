@@ -15,4 +15,4 @@ from .context_manager import ContextManager
 from .utils import validate_file_path, LLMResponseCache
 
 __all__ = ["DataGuy", "ContextManager", "validate_file_path", "LLMResponseCache"]
-__version__ = "0.1.4"
+__version__ = "0.1.6"
